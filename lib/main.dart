@@ -1,19 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:depen/Album.dart';
+import 'package:depen/FirstPage.dart';
+import 'package:depen/SecondPage.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
-Future<List<Album>> fetchAlbum() async {
-  final response =
-      await http.get(Uri.parse('https://jsonplaceholder.typicode.com/albums'));
-  if (response.statusCode == 200) {
-    List jsonResponse = json.decode(response.body);
-    return jsonResponse.map((albums) => Album.fromJson(albums)).toList();
-  } else {
-    throw Exception('Unexpected error occured!');
-  }
-}
 
 void main() => runApp(const MyApp());
 
@@ -25,12 +16,16 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late Future<List<Album>> futureAlbum;
+  int _selectedIndex = 0;
+  static const List<Widget> _widgetOptions = <Widget>[
+    FirstPage(),
+    SecondPage(),
+  ];
 
-  @override
-  void initState() {
-    super.initState();
-    futureAlbum = fetchAlbum();
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
@@ -38,47 +33,29 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Flutter API and ListView Example',
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Flutter ListView'),
-          backgroundColor: Colors.orange,
-        ),
-        body: Center(
-          child: FutureBuilder<List<Album>>(
-            future: futureAlbum,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                List<Album>? data = snapshot.data;
-                return ListView.builder(
-                    itemCount: data!.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return Column(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(25),
-                            child: Container(
-                              height: 75,
-                              width: 500,
-                              color: Colors.orange,
-                              child: Center(
-                                child: Text(data[index].title),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          )
-                        ],
-                      );
-                    });
-              } else if (snapshot.hasError) {
-                return Text("${snapshot.error}");
-              }
-              // By default show a loading spinner.
-              return const CircularProgressIndicator();
-            },
+          bottomNavigationBar: BottomNavigationBar(
+              onTap: _onItemTapped,
+              currentIndex: _selectedIndex,
+              //backgroundColor: Colors.blue,
+              selectedItemColor: Colors.black,
+              type: BottomNavigationBarType.shifting,
+              items: const <BottomNavigationBarItem>[
+                BottomNavigationBarItem(
+                    backgroundColor: Colors.amber,
+                    icon: Icon(Icons.abc),
+                    label: "página 1"),
+                BottomNavigationBarItem(
+                    backgroundColor: Colors.orange,
+                    icon: Icon(Icons.access_alarm_rounded),
+                    label: "página 45")
+              ]),
+          appBar: AppBar(
+            title: const Text('Flutter ListView'),
+            backgroundColor: Colors.orange,
           ),
-        ),
-      ),
+          body: Center(
+            child: _widgetOptions.elementAt(_selectedIndex),
+          )),
     );
   }
 }
